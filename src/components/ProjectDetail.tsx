@@ -11,6 +11,7 @@ import { OperationsReviewTab } from './tabs/OperationsReviewTab';
 import { CeoReviewTab } from './tabs/CeoReviewTab';
 import { CommentsTab } from './tabs/CommentsTab';
 import { AuditTrailTab } from './tabs/AuditTrailTab';
+import { AiAddonsTab } from './tabs/AiAddonsTab';
 
 import { AddProcurementItemModal } from './modals/AddProcurementItemModal';
 import { AddSiteLogModal } from './modals/AddSiteLogModal';
@@ -35,7 +36,8 @@ import {
   FileSignature, 
   MessageSquare, 
   History,
-  ArrowLeft
+  ArrowLeft,
+  Sparkles
 } from 'lucide-react';
 
 interface ProjectDetailProps {
@@ -58,6 +60,7 @@ export const ProjectDetail: React.FC<ProjectDetailProps> = ({ project, onBackToL
 
   const tabs = [
     { id: 'overview', label: 'Overview', icon: Layers },
+    { id: 'ai', label: 'AI Intelligence Suite', icon: Sparkles },
     { id: 'procurement', label: 'Procurement (BoQ)', icon: DollarSign },
     { id: 'site', label: 'Site Supervision', icon: HardHat },
     { id: 'media', label: `Photos & 4K Video (${photosCount})`, icon: Camera },
@@ -173,6 +176,8 @@ export const ProjectDetail: React.FC<ProjectDetailProps> = ({ project, onBackToL
       {activeTab === 'overview' && (
         <OverviewTab project={project} onNavigateTab={(tab) => setActiveTab(tab)} />
       )}
+
+      {activeTab === 'ai' && <AiAddonsTab project={project} />}
 
       {activeTab === 'procurement' && (
         <ProcurementTab

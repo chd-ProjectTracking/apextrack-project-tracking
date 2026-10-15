@@ -10,7 +10,9 @@ import {
   Users, 
   ChevronDown, 
   Lock,
-  Building2 
+  Building2,
+  Headphones,
+  Mail
 } from 'lucide-react';
 
 interface HeaderProps {
@@ -18,13 +20,15 @@ interface HeaderProps {
   currentView: 'list' | 'detail' | 'admin';
   onNavigateHome: () => void;
   onNavigateAdmin: () => void;
+  onOpenSupport?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({ 
   onNewProject, 
   currentView, 
   onNavigateHome,
-  onNavigateAdmin 
+  onNavigateAdmin,
+  onOpenSupport 
 }) => {
   const { currentUser, users, login, logout, activeProject, resetToDemoData } = useProjectContext();
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
@@ -39,15 +43,15 @@ export const Header: React.FC<HeaderProps> = ({
             onClick={onNavigateHome}
             className="flex items-center gap-2.5 text-left group transition-opacity hover:opacity-90 cursor-pointer"
           >
-            <div className="w-8 h-8 rounded-lg bg-slate-900 flex items-center justify-center text-white font-bold text-sm tracking-tight shadow-xs">
-              AT
+            <div className="w-8 h-8 rounded-lg bg-[#2A231C] border border-[#8B6F4E]/30 flex items-center justify-center text-[#E0C097] font-serif font-bold text-sm tracking-tight shadow-xs">
+              TDA
             </div>
             <div>
-              <span className="text-base font-bold tracking-tight text-slate-900 whitespace-nowrap shrink-0 block">
-                ApexTrack
+              <span className="text-base font-bold tracking-tight text-slate-900 whitespace-nowrap shrink-0 block font-serif">
+                The Design Address
               </span>
-              <span className="text-[10px] uppercase font-semibold tracking-wider text-slate-500 block -mt-1">
-                Luxury Fit-Out & Architectural Ops
+              <span className="text-[10px] uppercase font-semibold tracking-wider text-[#8B6F4E] block -mt-0.5">
+                by Rana Al Kassim · Fit-Out & Architectural Ops
               </span>
             </div>
           </button>
@@ -95,6 +99,17 @@ export const Header: React.FC<HeaderProps> = ({
             >
               <RotateCcw className="w-4 h-4" />
             </button>
+
+            {onOpenSupport && (
+              <button
+                onClick={onOpenSupport}
+                title="Contact IT Support: IT@chd-ranaalkassim.com"
+                className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-200/80 rounded-lg transition-colors whitespace-nowrap shrink-0 cursor-pointer"
+              >
+                <Headphones className="w-3.5 h-3.5 text-[#8B6F4E]" />
+                <span>IT Support</span>
+              </button>
+            )}
 
             <button
               onClick={onNewProject}
@@ -154,6 +169,19 @@ export const Header: React.FC<HeaderProps> = ({
                       <Sliders className="w-3.5 h-3.5 text-slate-500" />
                       <span>Admin Control Panel</span>
                     </button>
+
+                    {onOpenSupport && (
+                      <button
+                        onClick={() => {
+                          setIsUserMenuOpen(false);
+                          onOpenSupport();
+                        }}
+                        className="w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 flex items-center gap-2 text-slate-700 cursor-pointer"
+                      >
+                        <Headphones className="w-3.5 h-3.5 text-[#8B6F4E]" />
+                        <span>IT Support Helpdesk</span>
+                      </button>
+                    )}
 
                     <div className="my-1 border-t border-slate-100" />
                     <span className="text-[10px] uppercase font-semibold text-slate-400 px-2 py-1 block">

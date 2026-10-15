@@ -11,8 +11,13 @@ import {
   ShieldCheck, 
   FileSignature, 
   TrendingUp, 
-  Clock 
+  Clock,
+  Sparkles,
+  Loader2,
+  ChevronDown,
+  ChevronUp
 } from 'lucide-react';
+import { generateExecutiveBriefAI, draftExecutiveDirectiveAI } from '../../services/aiService';
 
 interface CeoReviewTabProps {
   project: Project;
@@ -23,6 +28,40 @@ export const CeoReviewTab: React.FC<CeoReviewTabProps> = ({ project }) => {
 
   const [directives, setDirectives] = useState(project.ceoReview.executiveDirectives || '');
   const [releaseBudget, setReleaseBudget] = useState(project.ceoReview.budgetReleased || false);
+
+  // AI states
+  const [isBriefingOpen, setIsBriefingOpen] = useState(false);
+  const [isBriefingLoading, setIsBriefingLoading] = useState(false);
+  const [briefingText, setBriefingText] = useState<string | null>(null);
+  const [isDraftingAi, setIsDraftingAi] = useState(false);
+
+  const handleFetchBriefing = async () => {
+    setIsBriefingOpen(true);
+    if (briefingText) return;
+    setIsBriefingLoading(true);
+    try {
+      const res = await generateExecutiveBriefAI(project);
+      setBriefingText(res);
+    } finally {
+      setIsBriefingLoading(false);
+    }
+  };
+
+  const handleQuickDraftDirective = async (decision: 'approve' | 'revision' | 'hold') => {
+    setIsDraftingAi(true);
+    try {
+      const text = await draftExecutiveDirectiveAI(
+        project.name,
+        'ceo',
+        decision,
+        `Stage evaluation for ${project.name}. Maintain luxury standards for The Design Address.`
+      );
+      setDirectives(text);
+      if (decision === 'approve') setReleaseBudget(true);
+    } finally {
+      setIsDraftingAi(false);
+    }
+  };
 
   const isCeo = hasPermission('canGrantCeoSignOff') || currentRole === 'ceo';
   const isApproved = project.ceoReview.status === 'approved';
@@ -67,15 +106,57 @@ export const CeoReviewTab: React.FC<CeoReviewTabProps> = ({ project }) => {
           </p>
         </div>
 
-        {!isCeo && (
+        <div className="flex items-center gap-2">
           <button
-            onClick={() => setCurrentRole('ceo')}
-            className="px-3 py-1.5 text-xs font-semibold bg-emerald-50 text-emerald-800 hover:bg-emerald-100 rounded-lg border border-emerald-200 transition-colors cursor-pointer"
+            onClick={handleFetchBriefing}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-slate-800 bg-[#FAF8F5] hover:bg-[#F2ECE1] border border-[#E8E2D8] rounded-lg transition-colors cursor-pointer shadow-2xs"
           >
-            Switch to CEO Persona (Robert Sterling) →
+            <Sparkles className="w-3.5 h-3.5 text-[#8B6F4E]" />
+            <span>AI Boardroom Brief</span>
+            {isBriefingOpen ? <ChevronUp className="w-3 h-3 text-slate-400" /> : <ChevronDown className="w-3 h-3 text-slate-400" />}
           </button>
-        )}
+
+          {!isCeo && (
+            <button
+              onClick={() => setCurrentRole('ceo')}
+              className="px-3 py-1.5 text-xs font-semibold bg-emerald-50 text-emerald-800 hover:bg-emerald-100 rounded-lg border border-emerald-200 transition-colors cursor-pointer"
+            >
+              Switch to CEO Persona (Rana Al Kassim) →
+            </button>
+          )}
+        </div>
       </div>
+
+      {/* AI Boardroom Briefing Drawer */}
+      {isBriefingOpen && (
+        <div className="bg-[#FAF8F5] border border-[#E8E2D8] rounded-xl p-5 space-y-3 relative overflow-hidden text-xs">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-[#8B6F4E]" />
+              <span className="font-bold text-slate-900">
+                AI Boardroom Executive Briefing (Rana Al Kassim & Elena Vance)
+              </span>
+            </div>
+            <button
+              onClick={() => setIsBriefingOpen(false)}
+              className="text-slate-400 hover:text-slate-700 text-xs cursor-pointer font-medium"
+            >
+              Close
+            </button>
+          </div>
+
+          {isBriefingLoading ? (
+            <div className="flex items-center gap-2 py-4 text-slate-500">
+              <Loader2 className="w-4 h-4 animate-spin text-[#8B6F4E]" />
+              <span>Synthesizing Capex variances, site milestones, and operations checklist...</span>
+            </div>
+          ) : (
+            <div className="bg-white border border-[#E8E2D8] rounded-lg p-4 font-mono text-slate-800 whitespace-pre-wrap leading-relaxed shadow-2xs">
+              {briefingText}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Financial Health Strip for CEO */}
       <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
@@ -173,17 +254,56 @@ export const CeoReviewTab: React.FC<CeoReviewTabProps> = ({ project }) => {
 
         {/* Input box for CEO comments & directives */}
         <div className="space-y-2">
-          <label className="text-xs font-semibold text-slate-700 block">
-            Executive Directives & CEO Review Comments
-          </label>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <label className="text-xs font-semibold text-slate-700 block">
+              Executive Directives & CEO Review Comments
+            </label>
+
+            {isCeo && (
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <span className="text-[10px] text-slate-400 font-medium">AI Auto-Draft:</span>
+                <button
+                  type="button"
+                  disabled={isDraftingAi}
+                  onClick={() => handleQuickDraftDirective('approve')}
+                  className="px-2 py-0.5 text-[10px] font-semibold bg-emerald-50 text-emerald-800 hover:bg-emerald-100 border border-emerald-200 rounded cursor-pointer transition-colors"
+                >
+                  Greenlight
+                </button>
+                <button
+                  type="button"
+                  disabled={isDraftingAi}
+                  onClick={() => handleQuickDraftDirective('revision')}
+                  className="px-2 py-0.5 text-[10px] font-semibold bg-amber-50 text-amber-800 hover:bg-amber-100 border border-amber-200 rounded cursor-pointer transition-colors"
+                >
+                  Revisions
+                </button>
+                <button
+                  type="button"
+                  disabled={isDraftingAi}
+                  onClick={() => handleQuickDraftDirective('hold')}
+                  className="px-2 py-0.5 text-[10px] font-semibold bg-rose-50 text-rose-800 hover:bg-rose-100 border border-rose-200 rounded cursor-pointer transition-colors"
+                >
+                  Hold
+                </button>
+              </div>
+            )}
+          </div>
+
           <textarea
             rows={4}
             value={directives}
             onChange={(e) => setDirectives(e.target.value)}
-            disabled={!isCeo}
-            placeholder="Enter CEO directives, e.g., Greenlight granted. Maintain strict monitoring on chiller delivery dates; approved for initial capital drawdown..."
+            disabled={!isCeo || isDraftingAi}
+            placeholder="Enter CEO directives, e.g., Greenlight granted. Maintain strict monitoring on marble delivery dates; approved for initial capital drawdown..."
             className="w-full text-xs p-3 bg-slate-50 border border-slate-200 rounded-lg focus:outline-hidden focus:ring-1 focus:ring-emerald-500 focus:bg-white text-slate-900 leading-relaxed"
           />
+          {isDraftingAi && (
+            <div className="text-[11px] text-[#8B6F4E] flex items-center gap-1.5">
+              <Loader2 className="w-3 h-3 animate-spin" />
+              <span>Drafting authoritative executive directive with Gemini AI...</span>
+            </div>
+          )}
         </div>
 
         {/* Capital Release Checkbox */}

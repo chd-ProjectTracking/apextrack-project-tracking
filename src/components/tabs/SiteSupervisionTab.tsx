@@ -11,8 +11,13 @@ import {
   Truck, 
   AlertTriangle, 
   CheckCircle2, 
-  Calendar 
+  Calendar,
+  Sparkles,
+  Loader2,
+  ChevronDown,
+  ChevronUp
 } from 'lucide-react';
+import { forecastSiteRisksAI } from '../../services/aiService';
 
 interface SiteSupervisionTabProps {
   project: Project;
@@ -25,6 +30,23 @@ export const SiteSupervisionTab: React.FC<SiteSupervisionTabProps> = ({
 }) => {
   const { currentRole, hasPermission } = useProjectContext();
   const [filterShift, setFilterShift] = useState<string>('all');
+
+  // AI Forecast state
+  const [isAiForecastOpen, setIsAiForecastOpen] = useState(false);
+  const [isAiLoading, setIsAiLoading] = useState(false);
+  const [aiForecastText, setAiForecastText] = useState<string | null>(null);
+
+  const handleRunAiForecast = async () => {
+    setIsAiForecastOpen(true);
+    if (aiForecastText) return;
+    setIsAiLoading(true);
+    try {
+      const res = await forecastSiteRisksAI(project);
+      setAiForecastText(res);
+    } finally {
+      setIsAiLoading(false);
+    }
+  };
 
   const logs = project.siteSupervision.dailyLogs;
   const filteredLogs = logs.filter((log) => {
@@ -52,20 +74,62 @@ export const SiteSupervisionTab: React.FC<SiteSupervisionTabProps> = ({
           </p>
         </div>
 
-        <button
-          onClick={onOpenAddLogModal}
-          className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold rounded-lg transition-colors cursor-pointer shadow-xs ${
-            canAddLog
-              ? 'bg-amber-600 hover:bg-amber-500 text-white'
-              : 'bg-slate-200 text-slate-500 cursor-not-allowed'
-          }`}
-          disabled={!canAddLog}
-          title={!canAddLog ? 'Only Site Supervisor or PM can submit daily site logs' : 'Log Daily Progress'}
-        >
-          <Plus className="w-3.5 h-3.5" />
-          <span>New Daily Site Log</span>
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={handleRunAiForecast}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-slate-800 bg-[#FAF8F5] hover:bg-[#F2ECE1] border border-[#E8E2D8] rounded-lg transition-colors cursor-pointer shadow-2xs"
+          >
+            <Sparkles className="w-3.5 h-3.5 text-[#8B6F4E]" />
+            <span>AI Hazard Forecast</span>
+            {isAiForecastOpen ? <ChevronUp className="w-3 h-3 text-slate-400" /> : <ChevronDown className="w-3 h-3 text-slate-400" />}
+          </button>
+
+          <button
+            onClick={onOpenAddLogModal}
+            className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold rounded-lg transition-colors cursor-pointer shadow-xs ${
+              canAddLog
+                ? 'bg-amber-600 hover:bg-amber-500 text-white'
+                : 'bg-slate-200 text-slate-500 cursor-not-allowed'
+            }`}
+            disabled={!canAddLog}
+            title={!canAddLog ? 'Only Site Supervisor or PM can submit daily site logs' : 'Log Daily Progress'}
+          >
+            <Plus className="w-3.5 h-3.5" />
+            <span>New Daily Site Log</span>
+          </button>
+        </div>
       </div>
+
+      {/* AI Site Forecast Drawer */}
+      {isAiForecastOpen && (
+        <div className="bg-[#FAF8F5] border border-[#E8E2D8] rounded-xl p-5 space-y-3 relative overflow-hidden text-xs">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-[#8B6F4E]" />
+              <span className="font-bold text-slate-900">
+                AI Site Execution & Safety Hazard Forecast (Tariq Mansoor)
+              </span>
+            </div>
+            <button
+              onClick={() => setIsAiForecastOpen(false)}
+              className="text-slate-400 hover:text-slate-700 text-xs cursor-pointer font-medium"
+            >
+              Close
+            </button>
+          </div>
+
+          {isAiLoading ? (
+            <div className="flex items-center gap-2 py-4 text-slate-500">
+              <Loader2 className="w-4 h-4 animate-spin text-[#8B6F4E]" />
+              <span>Analyzing shift trade density, evening humidity levels, and crane access...</span>
+            </div>
+          ) : (
+            <div className="bg-white border border-[#E8E2D8] rounded-lg p-4 font-mono text-slate-800 whitespace-pre-wrap leading-relaxed shadow-2xs">
+              {aiForecastText}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* KPI Cards Strip */}
       <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">

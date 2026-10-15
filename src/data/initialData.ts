@@ -137,6 +137,23 @@ export const INITIAL_USERS: UserProfile[] = [
     permissions: { ...DEFAULT_PERMISSIONS_BY_ROLE.ceo },
     createdAt: '2024-01-01T08:00:00Z',
   },
+  {
+    id: 'usr-006',
+    role: 'operations_manager',
+    name: 'Syed Ali',
+    email: 'it@chd-ranaalkassim.com',
+    title: 'IT Specialist & Technical Systems Administrator',
+    avatarInitials: 'SA',
+    department: 'IT Infrastructure & Digital Operations',
+    badgeColor: 'text-amber-800 bg-amber-50 border-amber-200',
+    status: 'active',
+    permissions: {
+      ...DEFAULT_PERMISSIONS_BY_ROLE.operations_manager,
+      canManageUsers: true,
+      canUploadMedia: true,
+    },
+    createdAt: '2024-05-01T08:00:00Z',
+  },
 ];
 
 export const SYSTEM_USERS: Record<UserRole, UserProfile> = INITIAL_USERS.reduce((acc, user) => {
