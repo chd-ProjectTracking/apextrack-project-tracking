@@ -1,0 +1,8 @@
+{
+  "name": "ApexTrack - Project Tracking & Executive Review",
+  "description": "Multi-role enterprise project tracking platform featuring procurement estimation, site supervision, project management, and executive operations and CEO review workflows.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
